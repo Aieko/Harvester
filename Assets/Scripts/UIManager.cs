@@ -57,8 +57,7 @@ public class UIManager : MonoBehaviour
     private void PreparePool()
     {
         GameObject coin;
-        for (int i = 0; i < maxCoins
-; i++)
+        for (int i = 0; i < maxCoins; i++)
         {
             coin = Instantiate(animatedCoinPrefab);
             coin.transform.parent = transform;

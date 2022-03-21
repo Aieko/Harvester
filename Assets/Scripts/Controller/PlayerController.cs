@@ -42,7 +42,7 @@ public class PlayerController : MonoBehaviour
 
     private void CheckAnimations()
     {
-        if(isMoving && !isHarvesting)
+        if(isMoving && !isHarvesting && RB.velocity.magnitude > 0)
         {
             animator.SetBool("Move", true);
             animator.SetBool("Idle", false);
@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(isMoving)
+        if(isMoving && moveVector != Vector3.zero)
         {
             Move(moveVector);
         }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -20,6 +21,9 @@ public class GameManager : MonoBehaviour
     [Header("Bag Settings")]
     [SerializeField] private Transform bagPos;
     [SerializeField] GameObject[] bagBale;
+    [Space]
+    [SerializeField] private int maxTradeBales;
+    private Queue<GameObject> tradeBalesQueue = new Queue<GameObject>();
     public int balesNum;
 
     [SerializeField] private int _maxBales = 40;
@@ -45,6 +49,8 @@ public class GameManager : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+
+        PreparePool();
     }
 
     // Start is called before the first frame update
@@ -62,6 +68,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void PreparePool()
+    {
+        GameObject bale;
+        for (int i = 0; i < maxTradeBales; i++)
+        {
+            bale = Instantiate(tradeBalePrefab);
+            bale.transform.parent = transform;
+            bale.SetActive(false);
+            tradeBalesQueue.Enqueue(bale);
+        }
+
+    }
+
     public void AddBale()
     {
         if (balesNum < _maxBales)
@@ -71,7 +90,11 @@ public class GameManager : MonoBehaviour
             Debug.Log($"Bales in bag : {balesNum}");
             CheckBagContent();
         }
-        else Debug.Log("Your bag is full! Can't carry anymore bales.");
+        else
+        {
+            Debug.Log("Your bag is full! Can't carry anymore bales.");
+            CheckBagContent(false);
+        }
 
         
     }
@@ -156,12 +179,20 @@ public class GameManager : MonoBehaviour
 
             balesNum--;
             userInterfaceManager.UpdateBales(balesNum);
-            var bale = Instantiate(tradeBalePrefab, bagPos.position,bagPos.rotation);
+            var bale = tradeBalesQueue.Dequeue();
+            bale.transform.position = bagPos.position;
+            bale.SetActive(true);
+
             CheckBagContent(false);
 
             yield return new WaitForSeconds(tradeRate);
         }
        
+    }
+
+    public void EnqueueTradeBale(GameObject bale)
+    {
+        tradeBalesQueue.Enqueue(bale);
     }
 
     public void AddCoins(int value)

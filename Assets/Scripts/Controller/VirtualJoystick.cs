@@ -1,22 +1,28 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine;
+using System.Collections;
 
 
 public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IPointerDownHandler
 {
-    private Image bgImage;
-    private Image joystickImage;
+    [SerializeField] private Image bgImage;
+    [SerializeField] private Image joystickImage;
     private Vector3 inputVector;
 
     public bool wasTouched { get; private set; }
 
 
     private void Start()
-    {
+    {   
         wasTouched = false;
-        bgImage = GetComponent<Image>();
-        joystickImage = transform.GetChild(0).GetComponent<Image>();
+        var bgColor = bgImage.color;
+        bgColor.a = 0;
+        bgImage.color = bgColor;
+        var joystickColor = joystickImage.color;
+        joystickColor.a = 0;
+        joystickImage.color = joystickColor;
+
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -39,18 +45,62 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        FadeJoystick(false);
         wasTouched = true;
+        Vector2 pos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, Input.mousePosition, eventData.pressEventCamera, out pos);
+        bgImage.transform.position = transform.TransformPoint(pos);
+
         OnDrag(eventData);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        FadeJoystick(true);
         wasTouched = false;
         inputVector = Vector3.zero;
         joystickImage.rectTransform.anchoredPosition = Vector3.zero;
     }
 
-    public float Horizontal()
+    private void FadeJoystick(bool fade)
+    {
+        StartCoroutine(FadeImage(fade, bgImage));
+        StartCoroutine(FadeImage(fade, joystickImage));
+    }
+
+    private IEnumerator FadeImage(bool fadeAway, Image img)
+    {
+        
+        if (fadeAway)
+        {
+            var origColor = img.color;
+
+            // loop over 1 second backwards
+            for (float i = 1; i >= 0; i -= Time.deltaTime)
+            {
+                
+                img.color = new Color(img.color.r, img.color.g, img.color.b, i);
+                yield return null;
+            }
+
+            img.color = new Color(img.color.r, img.color.g, img.color.b, 0);
+        }
+        
+        else
+        {
+            // loop over 1 second
+            for (float i = 0; i <= 1; i += Time.deltaTime)
+            {
+                
+                img.color = new Color(img.color.r, img.color.g, img.color.b, i);
+                yield return null;
+            }
+
+            img.color = new Color(img.color.r, img.color.g, img.color.b, 1);
+        }
+    }
+
+        public float Horizontal()
     {
         if (inputVector.x != 0)
             return inputVector.x;
