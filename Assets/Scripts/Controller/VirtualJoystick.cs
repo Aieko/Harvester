@@ -11,7 +11,7 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
     private Vector3 inputVector;
 
     public bool wasTouched { get; private set; }
-
+    private bool wasDragged;
 
     private void Start()
     {   
@@ -27,6 +27,12 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
 
     public void OnDrag(PointerEventData eventData)
     {
+        if(!wasDragged)
+        {
+            FadeJoystick(false);
+            wasDragged = true;
+        }
+      
         Vector2 position;
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(bgImage.rectTransform, eventData.position, eventData.pressEventCamera, out position))
         {
@@ -45,18 +51,22 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        FadeJoystick(false);
+        
         wasTouched = true;
         Vector2 pos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, Input.mousePosition, eventData.pressEventCamera, out pos);
         bgImage.transform.position = transform.TransformPoint(pos);
 
-        OnDrag(eventData);
+        //OnDrag(eventData);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        FadeJoystick(true);
+        if(wasDragged)
+        {
+            FadeJoystick(true);
+            wasDragged = false;
+        }
         wasTouched = false;
         inputVector = Vector3.zero;
         joystickImage.rectTransform.anchoredPosition = Vector3.zero;
@@ -64,6 +74,7 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
 
     private void FadeJoystick(bool fade)
     {
+        
         StartCoroutine(FadeImage(fade, bgImage));
         StartCoroutine(FadeImage(fade, joystickImage));
     }
@@ -85,7 +96,6 @@ public class VirtualJoystick: MonoBehaviour, IDragHandler, IPointerUpHandler, IP
 
             img.color = new Color(img.color.r, img.color.g, img.color.b, 0);
         }
-        
         else
         {
             // loop over 1 second
